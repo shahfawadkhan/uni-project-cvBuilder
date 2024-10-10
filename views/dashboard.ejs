@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="/js/script.js"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto py-10">
+      <div class="flex flex-col gap-10">
+        <!-- Resume Section -->
+        <div class="self-start">
+          <h2 class="text-2xl font-bold mb-5">Recent Resume</h2>
+
+          <% if (resumes.length === 0) { %>
+            <h2 class="text-green-500 mb-5">No recent resume. Go create one!</h2>
+          <% } else { %>
+            <div class="flex gap-5 justify-start flex-wrap">
+              <% resumes.forEach((resume, index) => { %>
+                <div class="p-5 bg-white shadow-md rounded-lg max-w-xs" id="resume-<%= resume.id %>">
+                  <h3 class="font-semibold mb-2">Resume #<%= index + 1 %></h3>
+                  <p class="text-gray-600 mb-4"><%= resume.title %></p>
+                  <div class="flex gap-3">
+                    <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" onclick="viewResume('<%= resume.id %>')">View</button>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="editResume('<%= resume.id %>')">Edit</button>
+                    <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="deleteResume('<%= resume.id %>')">Delete</button>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+          <button id="createCvBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-5">
+            Create CV
+          </button>
+        </div>
+
+        <!-- CV Form (Initially hidden) -->
+        <div id="cvForm" class="hidden bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-2xl font-bold mb-5">Create Your CV</h2>
+          <form id="cvFormInputs" method="post">
+            <div class="mb-4">
+              <label for="name" class="block mb-2">Name</label>
+              <input type="text" id="name" name="name" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+              <label for="email" class="block mb-2">Email</label>
+              <input type="email" id="email" name="email" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+              <label for="phone" class="block mb-2">Phone</label>
+              <input type="tel" id="phone" name="phone" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+              <label for="address" class="block mb-2">Address</label>
+              <textarea id="address" name="address" class="w-full p-2 border rounded" required></textarea>
+            </div>
+            <div class="mb-4">
+              <label for="skills" class="block mb-2">Skills (comma-separated)</label>
+              <input type="text" id="skills" name="skills" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+              <label for="experience" class="block mb-2">Experience</label>
+              <textarea id="experience" name="experience" class="w-full p-2 border rounded" required></textarea>
+            </div>
+            <div class="mb-4">
+              <label for="about" class="block mb-2">About</label>
+              <textarea id="about" name="about" class="w-full p-2 border rounded" required></textarea>
+            </div>
+            <button type="submit" id="generateCvBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+              Generate CV
+            </button>
+          </form>
+        </div>
+
+        <!-- CV Template (Initially hidden) -->
+        <div id="cvTemplate" class="hidden bg-white p-6 rounded-lg shadow-md">
+          <!-- CV content will be dynamically inserted here -->
+        </div>
+
+        <!-- CV Actions (Initially hidden) -->
+        <div id="cvActions" class="hidden mt-5">
+          <button id="downloadCvBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
+            Download CV
+          </button>
+          <button id="saveCvBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+            Save CV
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+    // Existing deleteResume function...
+
+    function deleteResume(id) {
+  if (confirm('Are you sure you want to delete this resume?')) {
+    fetch(`/resume/delete/${id}`, { method: 'DELETE' })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text();
+      })
+      .then(data => {
+        alert('Resume deleted successfully');
+        // Remove the deleted resume from the DOM
+        document.getElementById(`resume-${id}`).remove();
+      })
+      .catch(error => {
+        console.error('Error deleting resume:', error);
+        alert('Failed to delete resume');
+      });
+  }
+}
+
+    document.getElementById('createCvBtn').addEventListener('click', () => {
+      document.getElementById('cvForm').classList.remove('hidden');
+    });
+
+    document.getElementById('cvFormInputs').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const cvData = Object.fromEntries(formData.entries());
+      generateCV(cvData);
+    });
+
+    function generateCV(data) {
+      const template = `
+        <div class="cv-template">
+          <h1 class="text-3xl font-bold mb-4">${data.name}</h1>
+          <p class="mb-2">${data.email} | ${data.phone}</p>
+          <p class="mb-4">${data.address}</p>
+          <h2 class="text-2xl font-semibold mb-2">Skills</h2>
+          <p class="mb-4">${data.skills}</p>
+          <h2 class="text-2xl font-semibold mb-2">Experience</h2>
+          <p class="mb-4">${data.experience}</p>
+          <h2 class="text-2xl font-semibold mb-2">About</h2>
+          <p>${data.about}</p>
+        </div>
+      `;
+      
+      document.getElementById('cvTemplate').innerHTML = template;
+      document.getElementById('cvTemplate').classList.remove('hidden');
+      document.getElementById('cvActions').classList.remove('hidden');
+    }
+
+    document.getElementById('downloadCvBtn').addEventListener('click', () => {
+      const cvContent = document.getElementById('cvTemplate').innerHTML;
+      const blob = new Blob([cvContent], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cv.html';
+      a.click();
+    });
+
+
+    document.getElementById('saveCvBtn').addEventListener('click', async () => {
+      const cvTitle = prompt('Enter a title for your CV:');
+      if (cvTitle) {
+        const cvContent = document.getElementById('cvTemplate').innerHTML;
+        try {
+          const response = await fetch('/resume/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: cvTitle, content: cvContent })
+          });
+
+          if (response.ok) {
+            alert('CV saved successfully!');
+            location.reload(); // Refresh the page to show the new CV
+          } else {
+            alert('Failed to save CV');
+          }
+        } catch (error) {
+          console.error('Error saving CV:', error);
+          alert('An error occurred while saving the CV');
+        }
+      }
+    });
+
+    function viewResume(id) {
+      // Fetch and display the CV content
+      fetch(`/resume/${id}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('cvTemplate').innerHTML = data.content;
+          document.getElementById('cvTemplate').classList.remove('hidden');
+          document.getElementById('cvActions').classList.add('hidden');
+        })
+        .catch(error => {
+          console.error('Error fetching CV:', error);
+          alert('Failed to load CV');
+        });
+    }
+
+    function editResume(id) {
+      // Redirect to an edit page or load edit form
+      window.location.href = `/resume/edit/${id}`;
+    }
+    </script>
+  </body>
+</html>

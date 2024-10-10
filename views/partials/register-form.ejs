@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <form method="POST" action="/register">
+        <div class="self-center text-3xl font-bold text-blue-500">Register</div>
+        <div class="w-full flex flex-col gap-2">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" placeholder="Name" class="border border-black rounded-xl" required />
+        </div>
+        <div class="w-full flex flex-col gap-2">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Email" class="border border-black rounded-xl" required />
+        </div>
+        <div class="w-full flex flex-col gap-2">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Password" class="border border-black rounded-xl" required />
+        </div>
+        <div class="w-full flex flex-col gap-2">
+          <label for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" class="border border-black rounded-xl" required />
+        </div>
+        <button type="submit" class="text-white w-full cursor-pointer bg-blue-500 rounded-xl py-2 mt-4">Register</button>
+    </form>
+
+</body>
+</html>
